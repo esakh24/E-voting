@@ -1,0 +1,188 @@
+{% extends 'root.html' %}
+{% block content %}
+<section class="content">
+  <h1 class="page-header text-center title"><b>{{ TITLE }}</b></h1>
+<div class="row">
+<div class="col-sm-10 col-sm-offset-1">
+
+<div class="alert alert-danger alert-dismissible" id="alert" style="display:none;">
+<button type="button" class="close" data-dismiss="alert"
+aria-hidden="true">&times;</button>
+<span class="message"></span>
+</div>
+
+{% for position,candidateList in zip_position_cand %}
+<form method="POST" id="ballotForm" action="{% url 'submit_ballot' %}" >
+  {% csrf_token %}
+  <div class="row">       
+    <div class="col-xs-12"><div class="box box-solid" id={{position.id}}>
+    <div class="box-header with-border">
+   <h3 class="box-title pull-left"><b>{{position.name}}</b></h3>
+   <h4 class="box-title pull-right"><i>Election ends at: {{position.end_time}} {{position.end_date}}</i></h4>
+
+  </div>
+<div class="box-body">
+<p>Select only one candidate
+<span class="pull-right">
+
+<button type="button" class="btn btn-success btn-sm btn-flat reset" data-desc={{position.name}}><i class="fa fa-refresh"></i> Reset</button>
+</span>
+</p>
+<div id="candidate_list">
+<ul>
+  {%for candidate in candidateList%}
+<li>
+  <input value={{candidate.id}} type="radio" class="flat-red {{position.name}}"  name={{position.name}}>
+  <button type="button" class="btn btn-primary btn-sm btn-flat clist platform" data-fullname={{candidate.fullname}} data-bio={{candidate.bio}}><i class="fa fa-search"></i> Bio</button><img src="/media/{{candidate.photo}}" height="100px" width="100px" class="clist"><span class="cname clist">{{candidate.fullname}}</span></li>
+  
+{%endfor%}
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+  <div class="text-center">
+    <button type="button" class="btn btn-success btn-flat" id="preview"><i
+            class="fa fa-file-text"></i> Audit</button>
+    <button type="submit" class="btn btn-primary btn-flat" name="submit_vote"><i
+            class="fa fa-check-square-o"></i> Submit</button>
+</div>
+</form>
+{%endfor%}
+    </div>
+  </div>
+</section>
+{% endblock content %}
+
+{% block custom_js %}
+<script>
+  $(function() {
+      $('.content').iCheck({
+          checkboxClass: 'icheckbox_flat-green',
+          radioClass: 'iradio_flat-green'
+      });
+
+      $(document).on('click', '.reset', function(e) {
+          e.preventDefault();
+          var desc = $(this).data('desc');
+          $('.' + desc).iCheck('uncheck');
+      });
+
+      $(document).on('click', '.platform', function(e) {
+          e.preventDefault();
+          $('#bio').modal('show');
+          var platform = $(this).data('bio');
+          var fullname = $(this).data('fullname');
+          $('.candidate').html(fullname);
+          $('#plat_view').html(platform);
+      });
+
+      $('#preview').click(function(e) {
+          e.preventDefault();
+          var form = $('#ballotForm').serialize();
+          console.log(form);
+          if (form.search("&") < 0 || form == '') {
+              toastr.error('You must vote at least one candidate', "Preview Error");
+          } else {
+              $.ajax({
+                  type: 'POST',
+                  url: '{% url "preview_vote" %}',
+                  data: form,
+                  dataType: 'json',
+                  success: function(response) {
+                      if (response.error) {
+                          var errmsg = '';
+                          var messages = response.message;
+                          for (i in messages) {
+                              errmsg += messages[i];
+                          }
+                          toastr.error(errmsg, "Preview Error")
+                      } else {
+                          $('#preview_modal').modal('show');
+                          $('#preview_body').html(response.list);
+                          console.log(response)
+                      }
+                  }
+              });
+          }
+
+      });
+
+  });
+  copy = function(id){
+   let element = document.getElementById(id);
+   if(document.body.createTextRange) {
+       var range = document.body.createTextRange();
+       range.moveToElementText(element);
+       range.select();
+       document.execCommand("Copy");
+ }
+ else if(window.getSelection) {
+   // other browsers
+
+   var selection = window.getSelection();
+   var range = document.createRange();
+   range.selectNodeContents(element);
+   selection.removeAllRanges();
+   selection.addRange(range);
+   document.execCommand("Copy");
+   //alert("copied!") //alert among other methods can be used to auto deselect if you desire that
+ }
+}
+window.onload = function() 
+	  {
+	  var txt = document.getElementById('download_txt');
+      document.getElementById('download_link').onclick = function(code) 
+		{
+      this.href = 'data:text/plain;charset=utf-11,' + encodeURIComponent(txt.value);
+        };
+      };
+ 
+</script>
+
+{% endblock custom_js %}
+
+{% block modal %}
+
+<div class="modal fade" id="bio">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title"><b><span class="candidate"></b></h4>
+          </div>
+          <div class="modal-body">
+            <p id="plat_view"></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default btn-flat pull-left" data-dismiss="modal"><i class="fa fa-close"></i> Close</button>
+          </div>
+      </div>
+  </div>
+</div>
+
+<!-- Preview -->
+<div class="modal fade" id="preview_modal">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Vote Preview</h4>
+          </div>
+          <div class="modal-body">
+            <div id="preview_body"></div>
+            
+     
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default btn-flat pull-left" data-dismiss="modal"><i class="fa fa-close"></i> Close</button>
+            <a href="" id="download_link" download="keys.txt">Download keys</a>
+          </div>
+      </div>
+  </div>
+</div>
+{% endblock modal %}
+

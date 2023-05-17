@@ -1,0 +1,104 @@
+{% extends 'root.html' %}
+{% block content %}
+<section class="content">
+  <div class="row">
+<div class="col-xs-12">
+<div class="box">
+<div class="box-body">
+  <table id="example1" class="table table-bordered">
+      <thead>
+          <th>Voter's Name</th>
+          <th>Encrypted Vote</th>
+          <th>Position</th>
+      </thead>
+      <tbody>
+    {% for vote in votes %}
+      
+    <tr>
+      <td>{{ vote.voter }}</td>
+
+      <td style="display: flex;">
+    
+        <div id={{vote.id}} style="overflow: hidden; text-overflow: ellipsis;width: 200px;display: inline;
+        white-space: nowrap;border: 1px solid gray; padding: 3px;">
+        {{vote.enc_vote}}
+      </div><button id="copyButton" onclick="copy('{{vote.id}}')" style="display: inline; float: right; margin: 2px 2px; margin-left: 6px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard-fill" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M10 1.5a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-1Zm-5 0A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5v1A1.5 1.5 0 0 1 9.5 4h-3A1.5 1.5 0 0 1 5 2.5v-1Zm-2 0h1v1A2.5 2.5 0 0 0 6.5 5h3A2.5 2.5 0 0 0 12 2.5v-1h1a2 2 0 0 1 2 2V14a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V3.5a2 2 0 0 1 2-2Z"/>
+      </svg></button> 
+       </td>
+      <td>{{ vote.position }}</td>
+      
+     
+    </tr>
+    {% endfor %}      
+</tbody>
+  </table>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+{% endblock content %}
+
+
+{% block custom_js %}
+  
+<script>
+   copy = function(id){
+    let element = document.getElementById(id);
+    if(document.body.createTextRange) {
+        var range = document.body.createTextRange();
+        range.moveToElementText(element);
+        range.select();
+        document.execCommand("Copy");
+  }
+  else if(window.getSelection) {
+    // other browsers
+
+    var selection = window.getSelection();
+    var range = document.createRange();
+    range.selectNodeContents(element);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    document.execCommand("Copy");
+    //alert("copied!") //alert among other methods can be used to auto deselect if you desire that
+  }
+}
+  $(function() {
+      $(document).on('click', '.edit', function(e) {
+          e.preventDefault();
+          $('#edit').modal('show');
+          var id = $(this).data('id');
+          getRow(id);
+      });
+
+      $(document).on('click', '.delete', function(e) {
+          e.preventDefault();
+          $('#delete').modal('show');
+          var id = $(this).data('id');
+          getRow(id);
+      });
+
+
+  });
+
+  function getRow(id) {
+      $.ajax({
+          type: 'GET',
+          url: '{% url "viewCandidate" %}',
+          data: {
+              id: id
+          },
+          dataType: 'json',
+          success: function(response) {
+            $('.id').val(id),
+              $('.display_form').html(response.form);
+              $('.fullname').html(response.fullname);
+          },
+         
+      });
+  }
+  </script>
+{% endblock custom_js %}
+  

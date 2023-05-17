@@ -1,0 +1,73 @@
+{% extends 'root.html' %}
+{% block custom_js %}
+<script>
+
+   function inc(ctr){
+	  var txt1 = document.getElementById('download_txt1'+ctr);
+    document.getElementById('download_link1'+ctr).href = 'data:text/plain;charset=utf-11,' + encodeURIComponent(txt1.value);
+
+    
+   }
+</script>
+{% endblock custom_js %}
+{% block content %}
+{% for pos,  position, counter,cands in results %}
+<section class="content">
+  <div class="row">
+<div class="col-xs-12">
+<div class="box">
+
+<div class="box-body">
+
+  <h3>{{pos}}</h3>
+  
+  <table id="example1" class="table table-bordered">
+      <thead>
+          <th>Full Name</th>
+          <th>Avatar</th>
+          <th>Total number of votes</th>
+      </thead>
+      <tbody>
+    {% for candidate, status in cands %}
+      {% if candidate is not None %}
+      {% if status is True %}
+    <tr style="background-color: rgb(27, 74, 27);">
+      <td style="color:white">{{ candidate.fullname }}</td>
+      <td><img src="/media/{{ candidate.photo }}" width="80" height="80" alt="{{ candidate.fullname }}'s Avatar" class="img img-fluid"></td>
+      <td style="color:white">{{ candidate.vote_count }}</td>
+    </tr>
+    {% else %}
+    <tr >
+      <td>{{ candidate.fullname }}</td>
+      <td><img src="/media/{{ candidate.photo }}" width="80" height="80" alt="{{ candidate.fullname }}'s Avatar" class="img img-fluid"></td>
+      <td>{{ candidate.vote_count }}</td>
+    </tr>
+    {% endif %}
+    {%endif%}
+    {% endfor %}      
+</tbody>
+  </table>
+  <br><br>
+  {% if position is "Error" %}
+    <a href="" disabled>Download keys</a>
+    {% else %}
+    <textarea id="download_txt1{{counter}}" hidden>
+      Cipher Text is of form (c1, c2)&#13;&#10;
+      Here c1 = {{position.enc_msg1}}&#13;&#10;
+      d = {{position.enc_msg2}}&#13;&#10;
+      and c2 = d*(g^result)&#13;&#10;
+      here result is a vector of number of votes for each candidate in order.&#13;&#10;
+      Prime number p: {{position.admin_keys.p}}
+      &#13;&#10;Generator: {{position.admin_keys.g}}&#13;&#10;
+      Equate this cipher text with the mod multiplication of each encrypted vote.&#13;&#10;
+    </textarea>
+      <a href="" id="download_link1{{counter}}" download="keys.txt" onclick="inc('{{counter}}')">Download keys</a>
+   {% endif %} 
+  
+</div>
+</div>
+</div>
+</div>
+</section>
+{% endfor %}
+{% endblock content %}

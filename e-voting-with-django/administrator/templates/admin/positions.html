@@ -1,0 +1,290 @@
+{% extends 'root.html' %}
+{% block content %}
+<section class="content">
+  <div class="row">
+<div class="col-xs-12">
+<div class="box">
+<div class="box-header with-border">
+  <a href="#addnew" data-toggle="modal" class="btn btn-primary btn-sm btn-flat"><i
+          class="fa fa-plus"></i> New</a>
+</div>
+<div class="box-body">
+  <table id="example1" class="table table-bordered">
+      <thead>
+          <th>Name</th>
+          <!-- <th>Maximum Votes</th> -->
+          <th>Voter Count</th>
+          <th>Candidate Count</th>
+          <th>Branch</th>
+          <th>Candidates enrolled</th>
+          <!-- <th>Keys used</th> -->
+          <th>Action</th>
+      </thead>
+      <tbody>
+    {% for position,disbl,tallyd,branches in zip_pos_act %}
+      
+    <tr>
+      <td>{{ position.name }}</td>
+      <!-- <td>{{ position.max_vote }}</td> -->
+      <td>{{ position.voter_count }}</td>
+      <td>{{ position.candidate_count }}</td>
+      <td>{{ branches}}</td>
+      <td>{{ position.candidate_filled }}</td>
+      <!-- <td>{{position.admin_keys}}</td> -->
+      
+      <td>
+        {%if disbl is True%}
+        <button class='btn btn-success btn-sm edit btn-flat' data-id='{{ position.id }}' disabled><i class='fa fa-edit'></i> Edit</button>
+        {%if tallyd is True%}
+        <button class='btn btn-danger btn-sm delete btn-flat' data-id='{{ position.id }}' disabled><i class='fa fa-trash'></i> Delete</button>
+        {%else%}
+        <button class='btn btn-danger btn-sm delete btn-flat' data-id='{{ position.id }}'><i class='fa fa-trash'></i> Delete</button>
+        {%endif%}
+        <!-- <button class='btn btn-primary btn-sm tally btn-flat' data-id='{{ position.id }}'><i class='fa fa-edit'></i> Tally</button> -->
+        
+        {%else%}
+        <button class='btn btn-success btn-sm edit btn-flat' data-id='{{ position.id }}'><i class='fa fa-edit'></i> Edit</button>
+        <button class='btn btn-danger btn-sm delete btn-flat' data-id='{{ position.id }}'><i class='fa fa-trash'></i> Delete</button>
+        <!-- <button class='btn btn-primary btn-sm tally btn-flat' data-id='{{ position.id }}'><i class='fa fa-edit'></i> Tally</button> -->
+        
+        {%endif%}
+        {%if tallyd is True%}
+         <form action="{% url 'tallyPosition' %}" method="POST" style="display: inline;">
+          {% csrf_token %}
+          <input type = "hidden" name = "posid" value = '{{ position.id }}' />
+           <button type="submit" class='btn btn-primary btn-sm tally btn-flat' data-id='{{ position.id }}' disabled><i class='fa fa-calculator'></i> Tally Votes</button>
+           </form> 
+        {%else%}
+        <form action="{% url 'tallyPosition' %}" method="POST" style="display: inline;">
+          {% csrf_token %}
+          <input type = "hidden" name = "posid" value = '{{ position.id }}' />
+           <button type="submit" class='btn btn-primary btn-sm tally btn-flat' data-id='{{ position.id }}'><i class='fa fa-calculator'></i> Tally Votes</button>
+           </form> 
+        {%endif%}
+      </td>
+    </tr>
+    {% endfor %}      
+
+                            </tbody>
+  </table>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+{% endblock content %}
+
+{% block modal %}
+<div class="modal fade" id="addnew">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title"><b>Add New Position</b></h4>
+          </div>
+          <div class="modal-body">
+            <form class="form-horizontal" method="POST" action="{% url 'viewPositions' %}" >
+              {% csrf_token %}
+
+             
+              <div class="modal-body">
+                  {% for field in form1  %}
+                  <div class="form-group has-feedback">
+                      <span class="text-danger">{{field.errors}}</span>
+                      {{field.label_tag}}
+                      {{field}}
+                  </div>
+                  {% endfor %}
+
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default btn-flat pull-left" data-dismiss="modal"><i class="fa fa-close"></i> Close</button>
+            <button type="submit" class="btn btn-primary btn-flat" name="add"><i class="fa fa-save"></i> Save</button>
+          </div></form></div></div></div></div>
+
+<!-- Edit -->
+<div class="modal fade" id="edit">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title"><b>Edit Position</b></h4>
+          </div>
+          <div class="modal-body">
+            <form class="form-horizontal" method="POST" action="{% url 'updatePosition' %}">
+              {% csrf_token %}
+              <input type="hidden" class="id" name="id">
+              <div class="form-group">
+                <label for="name" class="col-sm-3 control-label">Name</label>
+
+                <div class="col-sm-9">
+                  <input type="text" class="form-control" id="name" name="name">
+                </div>
+            </div>
+
+            <div class="form-group">
+              <label for="max_vote" class="col-sm-3 control-label">Maximum Number of Votes</label>
+
+              <div class="col-sm-9">
+                <input type="text" class="form-control" id="max_vote" name="max_vote">
+              </div>
+          </div>
+          <div class="form-group">
+            <label for="voter_count" class="col-sm-3 control-label">Voter Count</label>
+
+            <div class="col-sm-9">
+              <input type="text" class="form-control" id="voter_count" name="voter_count">
+            </div>
+        </div>
+        <div class="form-group">
+          <label for="candidate_count" class="col-sm-3 control-label">Candidate Count</label>
+
+          <div class="col-sm-9">
+            <input type="text" class="form-control" id="candidate_count" name="candidate_count">
+          </div>
+      </div>
+      
+    <div class="form-group">
+      <label for="init_time" class="col-sm-3 control-label">Election start time</label>
+
+      <div class="col-sm-9">
+        <input type="time" class="form-control" id="init_time" name="init_time">
+      </div>
+  </div>
+
+  <div class="form-group">
+    <label for="init_date" class="col-sm-3 control-label">Election start date</label>
+
+    <div class="col-sm-9">
+      <input type="date" class="form-control" id="init_date" name="init_date">
+    </div>
+</div>
+
+  <div class="form-group">
+    <label for="end_time" class="col-sm-3 control-label">Election ending time</label>
+
+    <div class="col-sm-9">
+      <input type="time" class="form-control" id="end_time" name="end_time">
+    </div>
+</div>
+<div class="form-group">
+  <label for="end_date" class="col-sm-3 control-label">Election end date</label>
+
+  <div class="col-sm-9">
+    <input type="date" class="form-control" id="end_date" name="end_date">
+  </div>
+</div>
+<div class="form-group">
+  <label for="edit_branch" class="col-sm-3 control-label">Branch</label>
+
+  <div class="col-sm-9">
+    <select id="edit_branch" name="allowed_branches">
+      <option value="1">Arch</option>
+      <option value="2">CSE</option>
+      <option value="3">Biotech</option>
+      <option value="4">Electrical</option>
+      <option value="5">Electronics</option>
+    </select>
+    <!-- <input type="text" class="form-control" id="edit_branch" name="branch"> -->
+  </div>
+</div> 
+
+
+
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default btn-flat pull-left" data-dismiss="modal"><i class="fa fa-close"></i> Close</button>
+            <button type="submit" class="btn btn-success btn-flat" name="edit"><i class="fa fa-check-square-o"></i> Update</button>
+            </form>
+          </div>
+      </div>
+  </div>
+</div>
+
+<!-- Delete -->
+<div class="modal fade" id="delete">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title"><b>Deleting...</b></h4>
+          </div>
+          <div class="modal-body">
+            <form class="form-horizontal" method="POST" action="{% url 'deletePosition' %}">
+              <input type="hidden" class="id" name="id">
+              {% csrf_token %}
+              <div class="text-center">
+                  <p>DELETE POSITION</p>
+                  <h2 class="bold fullname"></h2>
+              </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default btn-flat pull-left" data-dismiss="modal"><i class="fa fa-close"></i> Close</button>
+            <button type="submit" class="btn btn-danger btn-flat" name="delete"><i class="fa fa-trash"></i> Delete</button>
+            </form>
+          </div>
+      </div>
+  </div>
+</div>
+
+{% endblock modal %}
+
+
+
+{% block custom_js %}
+  
+<script>
+  $(function() {
+      $(document).on('click', '.edit', function(e) {
+          e.preventDefault();
+          $('#edit').modal('show');
+          var id = $(this).data('id');
+          getRow(id);
+      });
+
+      $(document).on('click', '.delete', function(e) {
+          e.preventDefault();
+          $('#delete').modal('show');
+          var id = $(this).data('id');
+          getRow(id);
+      });
+      
+      
+
+
+  });
+
+  function getRow(id) {
+      $.ajax({
+          type: 'GET',
+          url: '{% url "viewPosition" %}',
+          data: {
+              id: id
+          },
+          dataType: 'json',
+          success: function(response) {
+              $('.id').val(response.id);
+              $('#max_vote').val(response.max_vote);
+              $('#name').val(response.name);
+              $('#voter_count').val(response.voter_count);
+              $('#candidate_count').val(response.candidate_count);
+              $('#init_date').val(response.init_date);
+              $('#init_time').val(response.init_time);
+              $('#end_date').val(response.end_date);
+              $('#end_time').val(response.end_time);
+              $('#edit_branch').val(response.branch);
+              $('.fullname').html(response.name);
+              
+          }
+      });
+  }
+  
+  </script>
+{% endblock custom_js %}
+  

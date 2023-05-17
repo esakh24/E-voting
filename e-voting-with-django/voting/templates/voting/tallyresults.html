@@ -1,0 +1,48 @@
+{% extends 'root.html' %}
+{% block content %}
+<section class="content">
+  <div class="row">
+<div class="col-xs-12">
+<div class="box">
+
+<div class="box-body">
+  {% if candidates is not None %}
+  <table id="example1" class="table table-bordered">
+      <thead>
+          <th>Full Name</th>
+         
+          <th>Bio</th>
+          <th>Avatar</th>
+          <th>Total number of votes</th>
+      </thead>
+      <tbody>
+    {% for candidate,res in candres %}
+      {% if candidate is not None %}
+    <tr>
+      <td>{{ candidate.fullname }}</td>
+      
+      <td>{{ candidate.bio }}</td> 
+      <td><img src="/media/{{ candidate.photo }}" width="80" height="80" alt="{{ candidate.fullname }}'s Avatar" class="img img-fluid"></td>
+      <td>{{ res }}</td>
+    </tr>
+    {%endif%}
+    {% endfor %}      
+</tbody>
+  </table>
+  {% endif %}
+ {% if candidates is None %}
+ <h3><b>Following admins haven't opted for tally yet:</b></h3><br>
+ <ul>
+  {%for admin in admins%}
+  <li>{{admin}}</li>
+  {%endfor%}
+ </ul>
+  {%endif%}
+</div>
+</div>
+</div>
+</div>
+</section>
+
+{% endblock content %}
+
